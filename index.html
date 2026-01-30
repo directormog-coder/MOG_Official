@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M.O.G. | THE VIBE IS LAW</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/easyqrcodejs/4.4.10/easy.qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #D4AF37; --gold-bright: #F9E29C; --dark: #070707; }
+        body { background-color: var(--dark); color: #ffffff; font-family: 'Inter', sans-serif; overflow-x: hidden; }
+        .silk-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 10%, #1a1a1a 0%, #070707 100%); z-index: -1; }
+        .gold-text { background: linear-gradient(to right, var(--gold), var(--gold-bright), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .gold-bg { background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%); transition: 0.3s; }
+        
+        .logo-frame { 
+            position: relative; width: 180px; height: 180px; padding: 5px; 
+            background: linear-gradient(45deg, var(--gold), transparent, var(--gold)); 
+            border-radius: 50%; margin-bottom: 2rem; animation: rotate-border 10s linear infinite;
+            cursor: pointer; -webkit-tap-highlight-color: transparent; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes rotate-border { 100% { filter: hue-rotate(20deg); } }
+        .logo-pulse { transform: scale(1.08); filter: drop-shadow(0 0 40px var(--gold)); }
+        .logo-frame img { width: 100%; height: 100%; border-radius: 50%; background: black; object-fit: cover; border: 3px solid #000; }
+        
+        .glass { background: rgba(15, 15, 15, 0.7); backdrop-filter: blur(25px); border: 1px solid rgba(212, 175, 55, 0.1); border-radius: 28px; }
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: slideUp 0.8s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .ticker-wrap { position: fixed; top: 80px; width: 100%; height: 35px; background: rgba(0,0,0,0.8); border-bottom: 1px solid rgba(212, 175, 55, 0.2); z-index: 40; display: flex; align-items: center; }
+        .ticker__item { font-size: 11px; letter-spacing: 4px; color: var(--gold); }
+        input { background: rgba(255,255,255,0.03); border: none; border-bottom: 1px solid #333; padding: 14px; color: white; text-align: center; margin-bottom: 10px; width: 100%; }
+        .admin-btn { border: 1px solid rgba(212,175,55,0.2); color: var(--gold); font-size: 9px; padding: 8px 15px; border-radius: 20px; text-transform: uppercase; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="silk-bg"></div>
+
+    <nav class="fixed top-0 w-full glass z-50 px-10 py-6 flex justify-between items-center border-b border-gold/10">
+        <div class="serif gold-text text-2xl tracking-widest flex items-center gap-3">
+             <img src="https://i.ibb.co/3NR9hY4/MOG-LOGO-EST-2026.png" alt="MOG Logo Small" class="w-10 h-10 rounded-full border border-gold/40">
+             <span>M.O.G.LOG.</span>
+        </div>
+        <div class="flex gap-10">
+            <span class="nav-link text-[10px] uppercase tracking-widest cursor-pointer opacity-60 hover:opacity-100" onclick="switchView('view-portal')">Portal</span>
+            <span class="nav-link text-[10px] uppercase tracking-widest cursor-pointer opacity-60 hover:opacity-100" onclick="switchView('view-archives')">Archives</span>
+            <span id="admin-indicator" class="hidden text-[8px] text-red-500 uppercase tracking-widest">Architect Mode</span>
+        </div>
+    </nav>
+
+    <div class="ticker-wrap"><div class="ticker" id="main-ticker"><span class="ticker__item">THE VIBE IS LAW</span><span id="live-announcements"></span></div></div>
+
+    <section id="view-portal" class="view-section active pt-48 px-6 max-w-md mx-auto pb-40 flex flex-col items-center text-center">
+        <div class="logo-frame" id="main-logo-medallion" onclick="handleMedallionTrigger()">
+            <img src="https://i.ibb.co/3NR9hY4/MOG-LOGO-EST-2026.png" alt="Ministry Medallion">
+        </div>
+        <p class="text-[11px] tracking-[0.6em] gold-text uppercase mb-3">Ministry of Groove</p>
+        <h1 class="serif text-5xl text-white uppercase tracking-tighter mb-12">THE VIBE IS LAW</h1>
+        <div class="glass w-full p-10 shadow-2xl" id="gate-container">
+            <div id="vip-gate">
+                <input type="password" id="vip-code-input" placeholder="INVITATION CODE">
+                <button onclick="unlockGate()" class="gold-bg text-black w-full py-5 font-bold uppercase text-[11px] rounded-xl mt-4">Access Ministry</button>
+            </div>
+            </div>
+    </section>
+
+    <section id="view-admin" class="view-section pt-48 px-8 max-w-6xl mx-auto pb-32">
+        <div class="flex justify-between items-end border-b border-gold/20 pb-6 mb-12">
+            <div>
+                <h2 class="serif text-4xl gold-text uppercase">Architect Control</h2>
+                <p id="timer-display" class="text-[9px] text-red-500 uppercase tracking-widest mt-2">Auto-Lock in 5:00</p>
+            </div>
+            <div class="flex gap-4">
+                <div class="glass px-6 py-2 border-gold/30">
+                    <p class="text-[7px] gold-text uppercase tracking-widest">Global Vibe Level</p>
+                    <p id="avg-vibe-display" class="serif text-xl gold-text">0.0 ★</p>
+                </div>
+                <button onclick="logoutAdmin()" class="admin-btn !text-red-500 !border-red-900">Lock Session</button>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+             <div class="glass p-8 lg:col-span-2">
+                <h4 class="gold-text uppercase text-xs mb-6 tracking-widest">Delegate Registry</h4>
+                <div id="admin-member-list" class="space-y-4 max-h-[400px] overflow-y-auto pr-2"></div>
+             </div>
+             <div class="space-y-6">
+                <div class="glass p-6">
+                    <h4 class="gold-text uppercase text-xs mb-4 tracking-widest text-center">Live Preview</h4>
+                    <div class="aspect-video bg-black rounded-lg overflow-hidden border border-gold/10">
+                        <iframe id="admin-preview-player" class="w-full h-full" src="" frameborder="0"></iframe>
+                    </div>
+                </div>
+                <div class="glass p-6 text-center">
+                    <h4 class="gold-text uppercase text-xs mb-4 tracking-widest">Inject Content</h4>
+                    <input type="text" id="new-video-title" placeholder="Record Title">
+                    <input type="text" id="new-video-url" placeholder="Embed URL">
+                    <button onclick="adminAddVideo()" class="gold-bg text-black w-full py-4 text-[10px] font-bold rounded-lg uppercase mt-2">Publish</button>
+                </div>
+             </div>
+        </div>
+    </section>
+
+    <script>
+        const _supabase = supabase.createClient('URL', 'KEY');
+        let logoClicks = 0, logoTimer, architectTimeout, timeLeft = 300;
+
+        function handleMedallionTrigger() {
+            const logo = document.getElementById('main-logo-medallion');
+            logoClicks++; clearTimeout(logoTimer);
+            logo.classList.add('logo-pulse');
+            setTimeout(() => { if(logoClicks < 3) logo.classList.remove('logo-pulse'); }, 200);
+            logoTimer = setTimeout(() => { logoClicks = 0; logo.classList.remove('logo-pulse'); }, 1000);
+            if(logoClicks === 3) {
+                const pass = prompt("Command Code:");
+                if(pass === "ARCHITECT2026") startArchitectSession();
+                else logo.classList.remove('logo-pulse');
+            }
+        }
+
+        async function startArchitectSession() {
+            switchView('view-admin');
+            document.getElementById('admin-indicator').classList.remove('hidden');
+            resetTimer();
+            window.addEventListener('mousemove', resetTimer);
+            window.addEventListener('keypress', resetTimer);
+            architectTimeout = setInterval(updateTimer, 1000);
+            
+            loadAdminMembers();
+            calculateVibeStat(); // New Vibe Stat logic
+            syncPreview();
+        }
+
+        async function calculateVibeStat() {
+            const { data } = await _supabase.from('session_reviews').select('vibe_rating');
+            if(data && data.length > 0) {
+                const avg = data.reduce((acc, curr) => acc + curr.vibe_rating, 0) / data.length;
+                document.getElementById('avg-vibe-display').innerText = `${avg.toFixed(1)} ★`;
+            }
+        }
+
+        function resetTimer() { timeLeft = 300; }
+        function updateTimer() {
+            timeLeft--;
+            const mins = Math.floor(timeLeft / 60), secs = timeLeft % 60;
+            document.getElementById('timer-display').innerText = `Auto-Lock in ${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            if (timeLeft <= 0) logoutAdmin();
+        }
+
+        function logoutAdmin() {
+            clearInterval(architectTimeout);
+            window.removeEventListener('mousemove', resetTimer);
+            window.removeEventListener('keypress', resetTimer);
+            document.getElementById('admin-indicator').classList.add('hidden');
+            document.getElementById('admin-preview-player').src = "";
+            switchView('view-portal');
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        // --- (EXISTING SUPABASE MEMBER TOOLS GO HERE) ---
+    </script>
+</body>
+</html>
