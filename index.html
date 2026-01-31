@@ -3,151 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <link rel="icon" type="image/png" href="logo.png">
-    <title>M.O.G. | Sovereign Command v41</title>
-    
+    <title>M.O.G. | Sovereign Command v41.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@300;400;600;900&display=swap" rel="stylesheet">
-    
     <style>
-        :root {
-            --gold: #D4AF37;
-            --champagne: #F3E5AB;
-            --electric-blue: #007BFF;
-            --black: #050505;
-        }
-        body { background-color: var(--black); color: #fff; font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        
-        /* LOGO COLOR BLENDING */
-        .gold-gradient {
-            background: linear-gradient(to right, var(--gold), var(--champagne), var(--gold));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        :root { --gold: #D4AF37; --champagne: #F3E5AB; --electric-blue: #007BFF; --black: #050505; }
+        body { background-color: var(--black); color: #fff; font-family: 'Inter', sans-serif; }
+        .gold-gradient { background: linear-gradient(to right, var(--gold), var(--champagne), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .blue-text { color: var(--electric-blue); text-shadow: 0 0 10px rgba(0, 123, 255, 0.4); }
         .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(30px); border: 1px solid rgba(212, 175, 55, 0.12); }
-        
-        .active-view { display: block !important; animation: slideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1); }
-        @keyframes slideUp { 0% { opacity: 0; transform: translateY(30px); } 100% { opacity: 1; transform: translateY(0); } }
-        
-        .folder-card { cursor: pointer; transition: 0.5s; border-radius: 2.5rem; background: rgba(255,255,255,0.01); border: 1px solid rgba(212, 175, 55, 0.08); position: relative; overflow: hidden; }
-        .folder-card:hover { transform: translateY(-10px); border-color: var(--electric-blue); box-shadow: 0 15px 35px rgba(0, 123, 255, 0.15); }
-        
-        .logo-pulse { animation: pulse 5s infinite ease-in-out; }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); filter: brightness(1.2) drop-shadow(0 0 20px rgba(0, 123, 255, 0.3)); } }
-        
-        #player-pod.playing { border-color: var(--electric-blue); box-shadow: 0 0 30px rgba(0, 123, 255, 0.2); }
-        .invitation-bg { background: radial-gradient(circle at top right, rgba(0, 123, 255, 0.05), transparent); }
+        section { display: none; } /* Hide all by default */
+        .active-view { display: block !important; animation: slideUp 0.5s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .folder-card { cursor: pointer; transition: 0.3s; }
+        .folder-card:hover { border-color: var(--electric-blue); transform: translateY(-5px); }
     </style>
 </head>
-<body class="flex flex-col min-h-screen pb-40">
+<body class="min-h-screen pb-40">
 
     <audio id="mandateAudio" loop><source src="mandate_mix.mp3" type="audio/mpeg"></audio>
 
     <nav class="fixed top-0 w-full glass z-50 px-8 py-6 flex justify-between items-center border-b border-blue-500/20">
-        <div class="serif gold-gradient text-3xl tracking-tighter cursor-pointer flex items-center gap-4" onclick="showView('landing')">
-            <img src="logo.png" class="w-10 h-10 rounded-full border border-gold/20"> M.O.G.
-        </div>
-        <div class="text-[8px] blue-text font-black uppercase tracking-[0.3em] animate-pulse">Encryption Active</div>
+        <div class="serif gold-gradient text-2xl cursor-pointer" onclick="showView('landing')">M.O.G.</div>
+        <div class="text-[8px] blue-text font-black uppercase tracking-[0.3em]">System Live</div>
     </nav>
 
-    <main class="flex-grow pt-44 px-6 sm:px-20">
+    <main class="pt-40 px-6 sm:px-20">
         
-        <section id="view-landing" class="hidden active-view">
-            <div class="text-center flex flex-col items-center">
-                <img src="logo.png" class="w-36 h-36 rounded-full mb-10 logo-pulse border-2 border-blue-500/30">
-                <h1 class="serif text-6xl sm:text-8xl mb-4 gold-gradient italic">The Ministry</h1>
-                <p class="blue-text text-xs tracking-[0.5em] uppercase mb-20 font-bold">Session 001: The Unveiling</p>
-                
-                <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
-                    <div onclick="showView('vip-card')" class="folder-card glass p-8 text-left border-blue-500/20">
-                        <span class="text-[9px] blue-text font-black">IDENTITY</span>
-                        <h3 class="serif text-2xl mt-2 gold-gradient">Passport</h3>
-                    </div>
-                    <div onclick="showView('briefing')" class="folder-card glass p-8 text-left">
-                        <span class="text-[9px] gold-text font-black font-black">01</span>
-                        <h3 class="serif text-2xl mt-2 gold-gradient">Briefing</h3>
-                    </div>
-                    <div onclick="showView('self-reg')" class="folder-card glass p-8 text-left">
-                        <span class="text-[9px] text-zinc-500 font-black">ENTRY</span>
-                        <h3 class="serif text-2xl mt-2 gold-gradient">Registry</h3>
-                    </div>
-                    <div onclick="secureEntry('admin')" class="folder-card glass p-8 text-left border-red-900/20">
-                        <span class="text-[9px] text-red-900 font-black">LOCK</span>
-                        <h3 class="serif text-2xl mt-2 gold-gradient">Command</h3>
-                    </div>
+        <section id="view-landing" class="active-view text-center">
+            <h1 class="serif text-6xl mb-12 gold-gradient italic">The Ministry</h1>
+            <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div onclick="showView('vip-card')" class="folder-card glass p-8 text-left">
+                    <span class="text-[9px] blue-text font-black">IDENTITY</span>
+                    <h3 class="serif text-xl mt-2">Passport</h3>
+                </div>
+                <div onclick="showView('briefing')" class="folder-card glass p-8 text-left">
+                    <span class="text-[9px] gold-text font-black">01</span>
+                    <h3 class="serif text-xl mt-2">Briefing</h3>
+                </div>
+                <div onclick="showView('self-reg')" class="folder-card glass p-8 text-left">
+                    <span class="text-[9px] text-zinc-400 font-black">ENTRY</span>
+                    <h3 class="serif text-xl mt-2">Registry</h3>
+                </div>
+                <div onclick="secureEntry('admin')" class="folder-card glass p-8 text-left border-red-900/20">
+                    <span class="text-[9px] text-red-900 font-black">LOCK</span>
+                    <h3 class="serif text-xl mt-2">Command</h3>
                 </div>
             </div>
         </section>
 
-        <section id="view-vip-card" class="hidden max-w-md mx-auto py-4">
-            <button onclick="showView('landing')" class="gold-text text-[9px] font-black mb-10 block tracking-[0.3em]">← DASHBOARD</button>
-            <div class="glass p-1 rounded-[3.5rem] border-blue-500/30 shadow-[0_0_60px_rgba(0,123,255,0.15)]">
-                <div class="bg-zinc-950 invitation-bg rounded-[3.3rem] p-10 text-center space-y-8 relative overflow-hidden">
-                    <img src="logo.png" class="w-20 h-20 mx-auto rounded-full border border-gold/20 logo-pulse">
-                    <div>
-                        <h2 class="serif gold-gradient text-4xl italic mb-1">Invitation</h2>
-                        <p class="blue-text text-[9px] font-black uppercase tracking-[0.5em]">Digital Passport v1.0</p>
-                    </div>
-                    <div class="border-y border-gold/10 py-6 space-y-4 text-[10px] uppercase tracking-[0.2em]">
-                        <div class="flex justify-between px-2"><span class="text-zinc-500">Status</span><span class="text-green-500 font-bold">● Verified</span></div>
-                        <div class="flex justify-between px-2"><span class="text-zinc-500">Protocol</span><span class="gold-text">Noir Elegance</span></div>
-                        <div class="flex justify-between px-2"><span class="text-zinc-500">Location</span><span class="blue-text italic">Locked</span></div>
-                    </div>
-                    <div class="bg-white p-3 rounded-2xl inline-block">
-                        <div id="qrcode" class="w-32 h-32 bg-zinc-100"></div>
-                    </div>
-                    <p class="text-[8px] text-zinc-600 uppercase leading-relaxed px-4">Authorized for Session 001. Present this key at the Gatekeeper Terminal.</p>
-                </div>
+        <section id="view-vip-card" class="text-center">
+            <button onclick="showView('landing')" class="gold-text text-[9px] mb-8 uppercase">← Back</button>
+            <div class="glass p-10 rounded-[3rem] max-w-sm mx-auto">
+                <h2 class="serif gold-gradient text-3xl mb-4 italic">VIP Passport</h2>
+                <div id="qrcode" class="bg-white p-4 inline-block mb-4"></div>
+                <p class="text-[10px] blue-text uppercase tracking-widest">Verified Delegate</p>
             </div>
+        </section>
+
+        <section id="view-briefing">
+            <button onclick="showView('landing')" class="gold-text text-[9px] mb-8 uppercase">← Back</button>
+            <h2 class="serif text-4xl gold-gradient mb-8">Briefing Dossier</h2>
+            <video class="w-full rounded-3xl" controls><source src="welcome.mp4" type="video/mp4"></video>
+        </section>
+
+        <section id="view-self-reg">
+            <button onclick="showView('landing')" class="gold-text text-[9px] mb-8 uppercase">← Back</button>
+            <h2 class="serif text-4xl gold-gradient">Registry</h2>
+            <p class="mt-4 opacity-50">Registration logic is connected to Google Sheets.</p>
         </section>
 
     </main>
 
-    <div class="fixed bottom-32 right-10 z-[110]">
-        <div id="player-pod" class="glass p-3 rounded-full flex items-center gap-5 border border-gold/20 pr-8 transition-all">
-            <button onclick="toggleMandateMix()" class="bg-blue-600 text-white p-4 rounded-full shadow-xl active:scale-90 transition-all">
-                <svg id="play-icon" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    <div class="fixed bottom-28 right-8 z-[110]">
+        <div id="player-pod" class="glass p-3 rounded-full flex items-center gap-4 pr-6">
+            <button onclick="toggleMandateMix()" class="bg-blue-600 text-white p-4 rounded-full">
+                <svg id="play-icon" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path id="icon-path" d="M8 5v14l11-7z"/></svg>
             </button>
-            <div class="hidden md:block">
-                <p class="text-[7px] blue-text font-black uppercase tracking-[0.4em]">Mandate Stream</p>
-                <p id="player-status" class="text-[10px] text-zinc-500">Signal Ready</p>
-            </div>
+            <p id="player-status" class="text-[10px] blue-text font-black uppercase">Stream Offline</p>
         </div>
     </div>
 
-    <footer class="fixed bottom-0 w-full glass py-8 px-10 flex justify-center gap-12 z-[90] border-t border-gold/10">
-        <a href="#" class="social-link gold-text text-[9px] uppercase tracking-widest opacity-50 hover:opacity-100">Instagram</a>
-        <a href="#" class="social-link gold-text text-[9px] uppercase tracking-widest opacity-50 hover:opacity-100">TikTok</a>
-        <a href="#" class="social-link gold-text text-[9px] uppercase tracking-widest opacity-50 hover:opacity-100">Facebook</a>
+    <footer class="fixed bottom-0 w-full glass py-8 px-10 flex justify-center gap-10 border-t border-gold/10">
+        <a href="https://instagram.com/your-profile" class="social-link gold-text text-[9px] uppercase tracking-widest">Instagram</a>
+        <a href="https://tiktok.com/@your-profile" class="social-link gold-text text-[9px] uppercase tracking-widest">TikTok</a>
+        <a href="https://facebook.com/your-profile" class="social-link gold-text text-[9px] uppercase tracking-widest">Facebook</a>
     </footer>
 
     <script>
         const MASTER_PASS = '7486';
+
         function showView(id) {
-            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
-            document.getElementById('view-' + id).classList.add('active-view');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            if(id === 'vip-card') generateQR();
+            // 1. Find all sections and hide them
+            document.querySelectorAll('section').forEach(s => s.classList.remove('active-view'));
+            // 2. Show the requested section
+            const target = document.getElementById('view-' + id);
+            if(target) {
+                target.classList.add('active-view');
+                if(id === 'vip-card') generateQR();
+            }
         }
-        function generateQR() {
-            document.getElementById('qrcode').innerHTML = "";
-            new QRCode(document.getElementById("qrcode"), { text: "MOG-VERIFIED-VIP", width: 128, height: 128, colorDark : "#000000", colorLight : "#ffffff" });
+
+        function secureEntry(view) {
+            const pass = prompt("ENTER AUTHORIZATION CODE:");
+            if(pass === MASTER_PASS) { showView('landing'); alert("Access to " + view + " granted."); }
+            else { alert("INVALID CREDENTIALS"); }
         }
+
         function toggleMandateMix() {
             const audio = document.getElementById('mandateAudio');
-            const icon = document.getElementById('play-icon');
-            const pod = document.getElementById('player-pod');
+            const status = document.getElementById('player-status');
+            const iconPath = document.getElementById('icon-path');
+
             if (audio.paused) {
-                audio.play();
-                icon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
-                pod.classList.add('playing');
+                audio.play().catch(e => alert("Please interact with the page first to enable audio."));
+                status.innerText = "Transmitting...";
+                iconPath.setAttribute('d', 'M6 19h4V5H6v14zm8-14v14h4V5h-4z'); // Pause Icon
             } else {
                 audio.pause();
-                icon.innerHTML = '<path d="M8 5v14l11-7z"/>';
-                pod.classList.remove('playing');
+                status.innerText = "Paused";
+                iconPath.setAttribute('d', 'M8 5v14l11-7z'); // Play Icon
             }
+        }
+
+        function generateQR() {
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = "";
+            new QRCode(qrContainer, { text: "MOG-VIP-ACCESS", width: 128, height: 128 });
         }
     </script>
 </body>
