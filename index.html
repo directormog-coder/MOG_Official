@@ -1,170 +1,146 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <link rel="icon" type="image/png" href="logo.png">
     <title>M.O.G. | Sovereign Command v41.2</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@300;400;600;900&display=swap" rel="stylesheet">
     
     <style>
-        :root { --gold: #D4AF37; --champagne: #F3E5AB; --electric-blue: #007BFF; --black: #050505; }
-        body { background-color: var(--black); color: #fff; font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        
+        :root { 
+            --gold: #D4AF37; --champagne: #F3E5AB; --blue: #007BFF; --red: #991b1b;
+            --bg: #050505; --text: #ffffff; --glass: rgba(255, 255, 255, 0.02); --border: rgba(212, 175, 55, 0.15);
+        }
+        [data-theme="light"] {
+            --gold: #A8A9AD; --champagne: #E5E4E2; --blue: #0056b3; 
+            --bg: #f5f5f7; --text: #1a1a1a; --glass: rgba(0, 0, 0, 0.03); --border: rgba(168, 169, 173, 0.3);
+        }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; transition: 0.5s; overflow-x: hidden; }
         .gold-gradient { background: linear-gradient(to right, var(--gold), var(--champagne), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .blue-text { color: var(--electric-blue); text-shadow: 0 0 10px rgba(0, 123, 255, 0.4); }
-        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(30px); border: 1px solid rgba(212, 175, 55, 0.12); }
-        
-        /* NAVIGATION ENGINE */
-        section { display: none; width: 100%; position: relative; z-index: 10; } 
+        .glass { background: var(--glass); backdrop-filter: blur(30px); border: 1px solid var(--border); }
+        section { display: none; width: 100%; } 
         .active-view { display: block !important; animation: slideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         
-        .folder-card { cursor: pointer; transition: 0.4s; border-radius: 2.5rem; background: rgba(255,255,255,0.01); border: 1px solid rgba(212, 175, 55, 0.1); }
-        .folder-card:hover { border-color: var(--electric-blue); transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0, 123, 255, 0.15); }
+        #ritual-overlay { position: fixed; inset: 0; background: #000; z-index: 99999; display: flex; flex-direction: column; justify-content: center; padding: 2rem; font-family: monospace; transition: 1s; }
+        .terminal-text { color: var(--gold); font-size: 10px; line-height: 1.5; margin-bottom: 4px; opacity: 0; animation: fadeIn 0.1s forwards; }
         
-        .logo-pulse { animation: pulse 5s infinite ease-in-out; }
-        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); filter: brightness(1.2) drop-shadow(0 0 20px rgba(0, 123, 255, 0.3)); } }
+        .theme-btn { width: 44px; height: 22px; background: var(--border); border-radius: 20px; position: relative; cursor: pointer; border: 1px solid var(--gold); }
+        .theme-btn::after { content: ''; position: absolute; width: 16px; height: 16px; background: var(--gold); border-radius: 50%; top: 2px; left: 2px; transition: 0.3s; }
+        [data-theme="light"] .theme-btn::after { left: 24px; }
+        
+        .social-link { font-size: 8px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.2em; opacity: 0.5; transition: 0.3s; }
+        .social-link:hover { opacity: 1; color: var(--gold); }
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="min-h-screen pb-48">
+<body class="min-h-screen">
 
-    <audio id="mandateAudio" loop><source src="mandate_mix.mp3" type="audio/mpeg"></audio>
+    <div id="ritual-overlay">
+        <div id="terminal-log" class="max-w-xl mx-auto w-full"></div>
+    </div>
 
-    <nav class="fixed top-0 w-full glass z-[100] px-8 py-6 flex justify-between items-center border-b border-blue-500/20">
-        <div class="serif gold-gradient text-3xl tracking-tighter cursor-pointer flex items-center gap-4" onclick="showView('landing')">
-            <img src="logo.png" class="w-10 h-10 rounded-full border border-gold/20"> M.O.G.
-        </div>
-        <div class="text-[8px] blue-text font-black uppercase tracking-[0.3em] animate-pulse">System Live</div>
+    <nav class="fixed top-0 w-full glass z-[100] px-8 py-6 flex justify-between items-center border-b border-white/5">
+        <div class="serif gold-gradient text-3xl tracking-tighter cursor-pointer" onclick="showView('landing')">M.O.G.</div>
+        <div class="theme-btn" onclick="toggleTheme()"></div>
     </nav>
 
-    <main class="pt-44 px-6 sm:px-20 relative z-10">
-        
+    <main class="pt-40 px-6 sm:px-20 relative z-10 pb-48">
         <section id="view-landing" class="active-view text-center">
-            <img src="logo.png" class="w-36 h-36 mx-auto rounded-full mb-10 logo-pulse border-2 border-blue-500/30">
-            <h1 class="serif text-6xl sm:text-8xl mb-4 gold-gradient italic">The Ministry</h1>
-            <p class="blue-text text-xs tracking-[0.5em] uppercase mb-20 font-bold">Frequency Restoration Protocol</p>
-            
-            <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div onclick="showView('vip-card')" class="folder-card glass p-8 text-left border-blue-500/20">
-                    <span class="text-[9px] blue-text font-black uppercase">Identity</span>
-                    <h3 class="serif text-2xl mt-2 gold-gradient">Passport</h3>
-                </div>
-                <div onclick="showView('briefing')" class="folder-card glass p-8 text-left">
-                    <span class="text-[9px] gold-text font-black uppercase">Dossier</span>
-                    <h3 class="serif text-2xl mt-2 gold-gradient">Briefing</h3>
-                </div>
-                <div onclick="showView('self-reg')" class="folder-card glass p-8 text-left">
-                    <span class="text-[9px] text-zinc-400 font-black uppercase">Entry</span>
-                    <h3 class="serif text-2xl mt-2 gold-gradient">Registry</h3>
-                </div>
-                <div onclick="secureEntry('admin')" class="folder-card glass p-8 text-left border-red-900/20">
-                    <span class="text-[9px] text-red-900 font-black uppercase">Lock</span>
-                    <h3 class="serif text-2xl mt-2 gold-gradient">Command</h3>
-                </div>
-            </div>
-        </section>
-
-        <section id="view-vip-card" class="max-w-md mx-auto text-center">
-            <button onclick="showView('landing')" class="gold-text text-[9px] font-black mb-10 block tracking-[0.3em] mx-auto uppercase">← Dashboard</button>
-            <div class="glass p-1 rounded-[3.5rem] border-blue-500/30 shadow-[0_0_60px_rgba(0,123,255,0.15)]">
-                <div class="bg-zinc-950 rounded-[3.3rem] p-10 space-y-8 relative overflow-hidden">
-                    <img src="logo.png" class="w-20 h-20 mx-auto rounded-full border border-gold/20">
-                    <h2 class="serif gold-gradient text-4xl italic">Invitation</h2>
-                    <div id="qrcode" class="bg-white p-3 rounded-2xl inline-block"></div>
-                    <p class="blue-text text-[9px] font-black uppercase tracking-[0.5em]">Verified VIP</p>
-                </div>
-            </div>
-        </section>
-
-        <section id="view-briefing" class="max-w-4xl mx-auto text-center">
-            <button onclick="showView('landing')" class="gold-text text-[9px] font-black mb-10 block tracking-[0.3em] mx-auto uppercase">← Dashboard</button>
-            <div class="glass p-8 rounded-[3rem]">
-                <video class="w-full rounded-[2rem] shadow-2xl mb-8" controls poster="logo.png">
-                    <source src="welcome.mp4" type="video/mp4">
-                </video>
-                <h3 class="serif gold-gradient text-3xl">Mandate: Noir Elegance</h3>
+            <h1 class="serif text-7xl sm:text-9xl mb-4 gold-gradient italic">The Ministry</h1>
+            <p class="text-[10px] uppercase tracking-[0.5em] mb-16 opacity-60">ministryofgroove.com</p>
+            <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div onclick="checkAccess('vip-card')" class="folder-card p-10 text-left glass"><span class="text-[9px] text-blue-500 font-bold uppercase">Identity</span><h3 class="serif text-3xl mt-2 gold-gradient">Passport</h3></div>
+                <div onclick="showView('self-reg')" class="folder-card p-10 text-left glass"><span class="text-[9px] opacity-50 font-bold uppercase">Entry</span><h3 class="serif text-3xl mt-2 gold-gradient">Registry</h3></div>
+                <div onclick="adminAccessCheck()" class="folder-card p-10 text-left border-red-900/20 glass"><span class="text-[9px] text-red-800 font-bold uppercase">Command</span><h3 class="serif text-3xl mt-2 gold-gradient">Director</h3></div>
             </div>
         </section>
 
         <section id="view-self-reg" class="max-w-2xl mx-auto text-center">
-            <button onclick="showView('landing')" class="gold-text text-[9px] font-black mb-10 block tracking-[0.3em] mx-auto uppercase">← Dashboard</button>
             <div class="glass p-12 rounded-[3.5rem]">
-                <h2 class="serif gold-gradient text-4xl mb-8 italic">The Manifest</h2>
-                <input type="text" placeholder="Full Name" class="bg-zinc-900 border border-zinc-800 p-5 rounded-2xl w-full outline-none focus:border-blue-500 text-center mb-6">
-                <button class="bg-blue-600 text-white w-full py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-blue-500/20">Transmit Dossier</button>
+                <h2 class="serif gold-gradient text-4xl mb-8 italic">Registry</h2>
+                <div id="reg-auth-status" class="hidden mb-10">
+                    <img id="user-avatar" src="logo.png" class="w-24 h-24 mx-auto rounded-full object-cover border-2 border-gold mb-4">
+                    <p id="user-display-email" class="text-[10px] opacity-50 mb-4"></p>
+                    <button onclick="document.getElementById('avatar-upload').click()" class="text-[9px] uppercase blue-text tracking-widest">Update Portrait</button>
+                    <input type="file" id="avatar-upload" class="hidden" onchange="uploadAvatar(event)">
+                </div>
+                <div id="reg-form">
+                    <input type="text" id="reg-name" placeholder="Full Name" class="bg-black/20 border border-white/10 p-5 rounded-2xl w-full text-center mb-6 outline-none focus:border-gold">
+                    <input type="email" id="reg-email" placeholder="Email" class="bg-black/20 border border-white/10 p-5 rounded-2xl w-full text-center mb-6 outline-none">
+                    <button onclick="handleRegistration()" class="bg-blue-600 text-white w-full py-5 rounded-2xl font-bold uppercase tracking-widest mb-6">Transmit Dossier</button>
+                    <button onclick="loginWithGoogle()" class="text-[10px] uppercase opacity-40 hover:opacity-100 tracking-widest">Sync Google Identity</button>
+                </div>
             </div>
         </section>
 
+        <section id="view-admin" class="max-w-6xl mx-auto">
+            <div class="glass p-10 rounded-[3rem]">
+                <h2 class="serif gold-gradient text-3xl mb-8">Central Manifest</h2>
+                <div id="admin-table" class="space-y-4"></div>
+            </div>
+        </section>
     </main>
 
-    <div class="fixed bottom-32 right-8 z-[150]">
-        <div id="player-pod" class="glass p-3 rounded-full flex items-center gap-5 border border-gold/20 pr-8">
-            <button onclick="toggleMandateMix()" class="bg-blue-600 text-white p-4 rounded-full shadow-xl active:scale-95 transition-all">
-                <svg id="play-icon" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path id="icon-path" d="M8 5v14l11-7z"/></svg>
-            </button>
-            <div class="hidden md:block">
-                <p class="text-[7px] blue-text font-black uppercase tracking-[0.4em]">Mandate Stream</p>
-                <p id="player-status" class="text-[10px] text-zinc-500">Signal Ready</p>
-            </div>
-        </div>
-    </div>
-
-    <footer class="fixed bottom-0 w-full glass py-10 px-10 flex justify-center gap-12 z-[100] border-t border-gold/10">
-        <a href="#" class="text-[9px] gold-text font-black uppercase tracking-[0.3em] opacity-60 hover:opacity-100 transition-all">Instagram</a>
-        <a href="#" class="text-[9px] gold-text font-black uppercase tracking-[0.3em] opacity-60 hover:opacity-100 transition-all">TikTok</a>
-        <a href="#" class="text-[9px] gold-text font-black uppercase tracking-[0.3em] opacity-60 hover:opacity-100 transition-all">Facebook</a>
+    <footer class="fixed bottom-0 w-full glass py-8 px-10 flex flex-wrap justify-center gap-8 z-[100] border-t border-white/5">
+        <a href="https://instagram.com/ministryofgroove_hq" target="_blank" class="social-link">Instagram</a>
+        <a href="https://facebook.com/TheMinistryofGroove" target="_blank" class="social-link">Facebook</a>
+        <a href="https://wa.me/27813874921" target="_blank" class="social-link">WhatsApp</a>
+        <a href="#" class="social-link opacity-20">TikTok</a>
+        <a href="mailto:director.mog@gmail.com" class="social-link">Director</a>
     </footer>
 
     <script>
-        const MASTER_PASS = '7486';
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        const ADMIN_EMAIL = 'director.mog@gmail.com';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentUser = null;
+
+        async function runRitual() {
+            const container = document.getElementById('terminal-log');
+            const lines = ["> INITIALIZING M.O.G. CORE...", "> DOMAIN: ministryofgroove.com", "> CLEARANCE: DIRECTOR", "> WELCOME TO THE GROOVE."];
+            for(let log of lines) {
+                const line = document.createElement('div'); line.className = 'terminal-text'; line.innerText = log;
+                container.appendChild(line); await new Promise(r => setTimeout(r, 350));
+            }
+            setTimeout(() => { document.getElementById('ritual-overlay').style.opacity = '0'; document.getElementById('ritual-overlay').style.pointerEvents = 'none'; }, 1000);
+        }
+
+        supabase.auth.onAuthStateChange(async (event, session) => {
+            currentUser = session?.user || null;
+            if(currentUser) {
+                document.getElementById('reg-form').classList.add('hidden');
+                document.getElementById('reg-auth-status').classList.remove('hidden');
+                document.getElementById('user-display-email').innerText = currentUser.email;
+            }
+        });
 
         function showView(id) {
-            // THE FIX: Hard-reset visibility of ALL sections
-            document.querySelectorAll('section').forEach(s => {
-                s.classList.remove('active-view');
-                s.style.display = 'none'; 
-            });
-            // Show target
-            const target = document.getElementById('view-' + id);
-            if(target) {
-                target.style.display = 'block';
-                setTimeout(() => target.classList.add('active-view'), 10);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-                if(id === 'vip-card') generateQR();
-            }
+            document.querySelectorAll('section').forEach(s => s.style.display = 'none');
+            document.getElementById('view-' + id).style.display = 'block';
         }
 
-        function secureEntry(view) {
-            const pass = prompt("Enter Clearance Code:");
-            if(pass === MASTER_PASS) { showView('landing'); alert("Authorized."); }
-            else { alert("Access Denied."); }
+        async function loginWithGoogle() { 
+            await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } }); 
         }
 
-        function toggleMandateMix() {
-            const audio = document.getElementById('mandateAudio');
-            const status = document.getElementById('player-status');
-            const iconPath = document.getElementById('icon-path');
-
-            if (audio.paused) {
-                audio.play();
-                status.innerText = "Transmitting...";
-                iconPath.setAttribute('d', 'M6 19h4V5H6v14zm8-14v14h4V5h-4z');
-            } else {
-                audio.pause();
-                status.innerText = "Paused";
-                iconPath.setAttribute('d', 'M8 5v14l11-7z');
-            }
+        async function adminAccessCheck() {
+            if (currentUser?.email === ADMIN_EMAIL) { showView('admin'); loadAdminData(); } 
+            else { alert("Director Clearance Required."); }
         }
 
-        function generateQR() {
-            const qrBox = document.getElementById('qrcode');
-            qrBox.innerHTML = "";
-            new QRCode(qrBox, { text: "MOG-VERIFIED-VIP", width: 128, height: 128 });
+        function toggleTheme() {
+            const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', t);
         }
+
+        window.onload = runRitual;
     </script>
 </body>
 </html>
